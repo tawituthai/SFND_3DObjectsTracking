@@ -155,6 +155,9 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     // ...
 }
 
+/**
+ * Output: bbBestMatches, expected to be a pair of (bbInx_prevFrame, bbInx_currFrame)
+*/
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {
     /*
@@ -191,15 +194,14 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             }
         }
 
-        // Only consider keypoint that's belonged to only one bounding box
-        // if ((bbInx_currFrame.size() == 1) && (bbInx_PrevFrame.size() == 1))
+        // Create a matrix to score a matches pairs
         if (!bbInx_currFrame.empty() && !bbInx_PrevFrame.empty())
         {
-            for (auto inxC : bbInx_currFrame)
+            for (auto inxC : bbInx_PrevFrame)
             {
-                for (auto inxP : bbInx_PrevFrame)
+                for (auto inxP : bbInx_currFrame)
                 {
-                    mmBBoxes[inxC][inxP]++;
+                    mmBBoxes[inxP][inxC]++;
                 }
             }
         }
@@ -207,11 +209,11 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 
     // Determine Bounding boxes best matches
     vector<int> maxId_vec;
-    for (int row = 0; row < currFrame.boundingBoxes.size(); row++)
+    for (int row = 0; row < prevFrame.boundingBoxes.size(); row++)
     {
         int max_col = -1;
         int maxId_col = -1;
-        for (int col = 0; col < prevFrame.boundingBoxes.size(); col++)
+        for (int col = 0; col < currFrame.boundingBoxes.size(); col++)
         {
             cout << mmBBoxes[row][col] << "\t";
             if (mmBBoxes[row][col] > max_col)
@@ -225,7 +227,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             bbBestMatches.insert({row, maxId_col});
     }
 
-    cout << "\nTrack frame (current, previous): ";
+    cout << "\nTrack frame (previous, current): ";
     for (auto ele : bbBestMatches)
         cout << "(" << ele.first << ", " << ele.second << ") ";
     cout << "\n"
