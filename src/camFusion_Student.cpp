@@ -139,20 +139,39 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
 // associate a given bounding box with the keypoints it contains
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
-    // ...
+
 }
 
 // Compute time-to-collision (TTC) based on keypoint correspondences in successive images
 void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr,
                       std::vector<cv::DMatch> kptMatches, double frameRate, double &TTC, cv::Mat *visImg)
 {
-    // ...
+
 }
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
-    // ...
+    cout << "#lidarPt Prev: " << lidarPointsPrev.size() << ", #lidarPt Curr: " << lidarPointsCurr.size() << endl;
+    if (!lidarPointsPrev.empty() && !lidarPointsCurr.empty())
+    {
+        double xPrev = 0;
+        for (auto pt : lidarPointsPrev)
+        {
+            xPrev += pt.x;
+        }
+        double centroidPrev(xPrev / lidarPointsPrev.size());
+
+        double xCurr = 0;
+        for (auto pt : lidarPointsCurr)
+        {
+            xCurr += pt.x;
+        }
+        double centroidCurr(xCurr / lidarPointsCurr.size());
+
+        TTC = (centroidCurr / frameRate) / (centroidPrev - centroidCurr);
+        cout << "TTC(s): " << TTC << endl;
+    }
 }
 
 /**
@@ -165,7 +184,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     * that matches with keypoints index matches.queryIdx in prevFrame
     */
     int16_t matchesTheshold = 10; // min number of keypoints matches between frames
-    int16_t mmBBoxes[currFrame.boundingBoxes.size()][prevFrame.boundingBoxes.size()];
+    int16_t mmBBoxes[prevFrame.boundingBoxes.size()][currFrame.boundingBoxes.size()];
     memset(mmBBoxes, 0, sizeof(mmBBoxes));
 
     // Loop over all matches keypoints in the current frame
@@ -195,11 +214,12 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         }
 
         // Create a matrix to score a matches pairs
-        if (!bbInx_currFrame.empty() && !bbInx_PrevFrame.empty())
+        //if (!bbInx_currFrame.empty() && !bbInx_PrevFrame.empty())
+        if ((bbInx_currFrame.size() == 1) && (bbInx_PrevFrame.size() == 1))
         {
-            for (auto inxC : bbInx_PrevFrame)
+            for (auto inxP : bbInx_PrevFrame)
             {
-                for (auto inxP : bbInx_currFrame)
+                for (auto inxC : bbInx_currFrame)
                 {
                     mmBBoxes[inxP][inxC]++;
                 }
@@ -227,9 +247,9 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             bbBestMatches.insert({row, maxId_col});
     }
 
-    cout << "\nTrack frame (previous, current): ";
-    for (auto ele : bbBestMatches)
-        cout << "(" << ele.first << ", " << ele.second << ") ";
-    cout << "\n"
-         << endl;
+    // cout << "\nTrack frame (previous, current): ";
+    // for (auto ele : bbBestMatches)
+    //     cout << "(" << ele.first << ", " << ele.second << ") ";
+    // cout << "\n"
+    //      << endl;
 }
