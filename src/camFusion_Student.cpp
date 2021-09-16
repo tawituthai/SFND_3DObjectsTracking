@@ -139,14 +139,47 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
 // associate a given bounding box with the keypoints it contains
 void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
+    std::vector<cv::DMatch> matchesROI;
+    // Get only if matches keypoint of current frame that's with in bounding box
+    for (auto match : kptMatches)
+    {
+        cv::KeyPoint currMatch = kptsCurr[match.trainIdx];
+        if (boundingBox.roi.contains(currMatch.pt)) matchesROI.push_back(match);
+    }
 
+    // Calculate distance of each matches pair, between current and previous frame
+    vector<double> distVec;
+    double dist_sum = 0;
+    for( auto match : matchesROI)
+    {
+        double dist = cv::norm(kptsCurr.at(match.trainIdx).pt - kptsPrev.at(match.queryIdx).pt);
+        dist_sum += dist;
+        distVec.push_back(dist);
+    }
+    // Mean distance
+    double dist_mean = dist_sum/matchesROI.size();
+
+    // Ignore outlier keypoint, based on distant of matches keypoints between frame
+    double dist_min = dist_mean*0.6;
+    double dist_max = dist_mean*1.4;
+    cout << "Avg.dist: " << dist_mean << " min: " << dist_min << " max: " << dist_max << endl;
+    for( auto inx = 0; inx < matchesROI.size(); inx++)
+    {
+        if ( (distVec.at(inx) > dist_min) && (distVec.at(inx) < dist_max) )
+        {
+            boundingBox.kptMatches.push_back(matchesROI.at(inx));
+        } else {
+            // cout << "Remove keypoint, distant: " << distVec.at(inx) << endl;
+        }
+    }
+    cout << "#keypoint left: " << boundingBox.kptMatches.size() 
+    << " , #keypoint removed: " << (matchesROI.size() - boundingBox.kptMatches.size()) << endl;
 }
 
 // Compute time-to-collision (TTC) based on keypoint correspondences in successive images
 void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr,
                       std::vector<cv::DMatch> kptMatches, double frameRate, double &TTC, cv::Mat *visImg)
 {
-
 }
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
@@ -235,14 +268,14 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         int maxId_col = -1;
         for (int col = 0; col < currFrame.boundingBoxes.size(); col++)
         {
-            cout << mmBBoxes[row][col] << "\t";
+            // cout << mmBBoxes[row][col] << "\t";
             if (mmBBoxes[row][col] > max_col)
             {
                 max_col = mmBBoxes[row][col];
                 maxId_col = col;
             }
         }
-        cout << endl;
+        // cout << endl;
         if (max_col > matchesTheshold)
             bbBestMatches.insert({row, maxId_col});
     }
