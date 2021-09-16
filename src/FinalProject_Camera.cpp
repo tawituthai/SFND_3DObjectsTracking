@@ -262,8 +262,8 @@ int main(int argc, const char *argv[])
                     //// EOF STUDENT ASSIGNMENT
 
                     //// STUDENT ASSIGNMENT
-                    //// TASK FP.3 -> assign enclosed keypoint matches to bounding box (implement -> clusterKptMatchesWithROI)
-                    //// TASK FP.4 -> compute time-to-collision based on camera (implement -> computeTTCCamera)
+                    //// TASK FP.3 [Done] -> assign enclosed keypoint matches to bounding box (implement -> clusterKptMatchesWithROI)
+                    //// TASK FP.4 [Done] -> compute time-to-collision based on camera (implement -> computeTTCCamera)
                     double ttcCamera;
                     clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);                    
                     computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
