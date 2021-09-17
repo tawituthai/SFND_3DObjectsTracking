@@ -162,7 +162,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
     // Ignore outlier keypoint, based on distant of matches keypoints between frame
     double dist_min = dist_mean*0.1;
     double dist_max = dist_mean*5.0;
-    cout << "Avg.dist: " << dist_mean << " min: " << dist_min << " max: " << dist_max << endl;
+    // cout << "Avg.dist: " << dist_mean << " min: " << dist_min << " max: " << dist_max << endl;
     for( auto inx = 0; inx < matchesROI.size(); inx++)
     {
         if ( (distVec.at(inx) > dist_min) && (distVec.at(inx) < dist_max) )
@@ -172,8 +172,8 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
             // cout << "Remove keypoint, distant: " << distVec.at(inx) << endl;
         }
     }
-    cout << "#keypoint left: " << boundingBox.kptMatches.size() 
-    << " , #keypoint removed: " << (matchesROI.size() - boundingBox.kptMatches.size()) << endl;
+    // cout << "#keypoint left: " << boundingBox.kptMatches.size() 
+    // << " , #keypoint removed: " << (matchesROI.size() - boundingBox.kptMatches.size()) << endl;
 }
 
 // Compute time-to-collision (TTC) based on keypoint correspondences in successive images
@@ -216,6 +216,7 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 
     // Finally, calculate a TTC estimate based on these 2D camera features
     TTC = (-1.0 / frameRate) / (1 - medianDistRatio);
+    // cout << "Camera TTC(s): " << TTC << endl;
 }
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
@@ -239,7 +240,8 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
         double centroidCurr(xCurr / lidarPointsCurr.size());
 
         TTC = (centroidCurr / frameRate) / (centroidPrev - centroidCurr);
-        cout << "TTC(s): " << TTC << endl;
+        // cout << "Lidar TTC(s): " << TTC << " centroid Prev: " 
+        // << centroidPrev << ", Curr: "<< centroidCurr << " , Frame rate: " << frameRate << endl;
     }
 }
 
