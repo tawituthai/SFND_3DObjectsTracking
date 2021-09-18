@@ -219,30 +219,45 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     // cout << "Camera TTC(s): " << TTC << endl;
 }
 
+bool lidarPointsCompare_x (LidarPoint src1, LidarPoint src2) { return ( src1.x < src2.x); };
+
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
-    cout << "#lidarPt Prev: " << lidarPointsPrev.size() << ", #lidarPt Curr: " << lidarPointsCurr.size() << endl;
-    if (!lidarPointsPrev.empty() && !lidarPointsCurr.empty())
-    {
-        double xPrev = 0;
-        for (auto pt : lidarPointsPrev)
-        {
-            xPrev += pt.x;
-        }
-        double centroidPrev(xPrev / lidarPointsPrev.size());
+    //Sort lidar points by x value
+    std::sort(lidarPointsPrev.begin(), lidarPointsPrev.end(), lidarPointsCompare_x);
+    std::sort(lidarPointsCurr.begin(), lidarPointsCurr.end(), lidarPointsCompare_x);
 
-        double xCurr = 0;
-        for (auto pt : lidarPointsCurr)
-        {
-            xCurr += pt.x;
-        }
-        double centroidCurr(xCurr / lidarPointsCurr.size());
+    //Get median point
+    double medianPrev = lidarPointsPrev.at( (int)(lidarPointsPrev.size()/2) ).x;
+    double medianCurr = lidarPointsCurr.at( (int)(lidarPointsCurr.size()/2) ).x;
 
-        TTC = (centroidCurr / frameRate) / (centroidPrev - centroidCurr);
-        // cout << "Lidar TTC(s): " << TTC << " centroid Prev: " 
-        // << centroidPrev << ", Curr: "<< centroidCurr << " , Frame rate: " << frameRate << endl;
-    }
+    TTC = (medianCurr / frameRate) / (medianPrev - medianCurr);
+    cout << "Lidar TTC(s): " << TTC << " median Prev: " 
+    << medianPrev << ", Curr: "<< medianCurr << " , Frame rate: " << frameRate << endl;
+
+    // Calculate lidar points centroid
+    // cout << "#lidarPt Prev: " << lidarPointsPrev.size() << ", #lidarPt Curr: " << lidarPointsCurr.size() << endl;
+    // if (!lidarPointsPrev.empty() && !lidarPointsCurr.empty())
+    // {
+    //     double xPrev = 0;
+    //     for (auto pt : lidarPointsPrev)
+    //     {
+    //         xPrev += pt.x;
+    //     }
+    //     double centroidPrev(xPrev / lidarPointsPrev.size());
+
+    //     double xCurr = 0;
+    //     for (auto pt : lidarPointsCurr)
+    //     {
+    //         xCurr += pt.x;
+    //     }
+    //     double centroidCurr(xCurr / lidarPointsCurr.size());
+
+    //     TTC = (centroidCurr / frameRate) / (centroidPrev - centroidCurr);
+    //     // cout << "Lidar TTC(s): " << TTC << " centroid Prev: " 
+    //     // << centroidPrev << ", Curr: "<< centroidCurr << " , Frame rate: " << frameRate << endl;
+    // }
 }
 
 /**

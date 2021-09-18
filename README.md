@@ -15,10 +15,6 @@
 4. Run it: `./3D_object_tracking`.
 
 ## Project writeup
-### FP.0 parameters setup
-- number of frame
-- skip frame
-- detector and descriptor
 
 ### FP.1 Match 3D Objects
 Implement `matchBoundingBoxes` function. Given a pairs of matches keypoints between current and previous frame as an input (from `matchDescriptors` function), we then need to match a bounding boxes id (given by YOLO) between the frame as well.
@@ -47,6 +43,8 @@ A relation between frame is not always exist as can be seen in bonding box with 
 Implement `computeTTCLidar` function. Given Lidar points from previous and current frame, determine Time To Collision. Speacial care need to be taken to handle outlier points.
 
 Instead of using the nearest Lidar point to determine a distance between ego and preceeding car, I uses a centroid of the points instead. This will minimize an effect of having a few outlier points and therefore provide more reliable TTC calculation output.
+
+`[update]` Additional experiment shown that there are some abnormalities in TTC estimation when some lidar points doesn't come from preceeding vehicle and cause TTC estimation to be unrealisticly high. My solution is to use a median value of lidar points instead of using centroid, this greatly help a robustness of TTC estimation from lidar points.
 
 ### FP.3 Associate Keypoint Correspondences with Bounding Boxes
 Implement `clusterKptMatchesWithROI` function. Given a matches keypoints between previous and current frame, we need to assign a valid matches keypoints pair to a bounding boxes.
@@ -83,6 +81,8 @@ Same scenarios occur at frame index 36, where TTC from Lidar points yield 61.906
 
 These problem can be address by applied euclidean base filtering to remove outlier points.
 
+`[update]` The outlier problem has been resolved with minor change in `computeTTCLidar` function, to use a median of points instead of centroid. With this change, the problems shown above has then been resolved.
+
 ### FP.5 Performance Evaluation 2 (TTC estimation from image keypoints using combination of detector and descriptor pairs)
 Compair resulting TTC estimation from various feature detector and descriptor to determind best combination. The plot below shown an overall performance.
 
@@ -110,3 +110,4 @@ When look at matches keypoints at the specific frame, shown below, we can see th
 | *Frame 30, ORB/SIFT combination* |
 
 TTC Calculated for this frame is 81.06 sec. while manually calculated TTC based on Lidar point yield 7.2375 sec.
+ 
